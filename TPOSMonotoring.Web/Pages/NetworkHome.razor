@@ -1,0 +1,219 @@
+﻿@page "/details"
+@inherits NetworkHomeBase
+@inject NavigationManager UriHelper
+@if (ServiceStatuses == null)
+{
+    <div class="spinner"></div>
+}
+else{
+    <input type="image" name="Home" src="/images/home.png" width="30px" height="30px" alt="Home" @onclick=@Navigate>
+    <div class="card ">
+        @{
+            var errorCount = 0;
+            var styleBoader = "";
+            var styleAlert = "";
+            var imageLoc = "";
+            var errorColor = "black";
+            var errorFontBold = "normal";
+        }
+
+        @if (ServiceStatuses != null){
+            @foreach (var service in ServiceStatuses.Where(w => w.Parent.Trim().Equals("")).OrderBy(o => o.IsRunning).ThenBy(o => o.RemortHostName))
+            {
+                imageLoc = "/Images/" + service.RemortHostType + ".jpg";
+                <div class="card-group">
+                    @{
+                        if (service.IsRunning == 0)
+                        {
+                            styleBoader = "min-width:10rem; max-width:10%; border-color:red;";
+                            styleAlert = "alert-danger";
+                        }
+                        else
+                        {
+                            styleBoader = "min-width:10rem;max-width:10%; border-color:black;";
+                            styleAlert = "alert-success";
+                        }
+                    }
+                    <div class="card m-3 @styleAlert"  style=@styleBoader>
+                        <div class="card-header text-center">
+                            @service.RemortHostDescription
+                        </div>
+                        <div style="text-align:center">
+                            <img class="card-img-top imageThumbnail" src=@imageLoc />
+                        </div>
+                        <div style="text-align:center">
+                            <table style="width:100%">
+                                <tr>
+                                    <th style="font-size:10pt">Sql Server</th>
+                                    <th style="font-size:10pt">Sql Agent</th>
+                                </tr>
+                                <tr>
+                                    <td style="font-size:9pt" title="SQL server status">@service.SqlServerStatus</td>
+                                    <td style="font-size:9pt" title="SQL agent agent status">@service.SqlServerAgnetStatus</td>
+                                </tr>
+                                <tr>
+                                    <td style="font-size:9pt" title="SQL server startup type">@service.SqlServerStartupType</td>
+                                    @{
+                                        if (service.SqlServerAgnetStartupType!="Auto"){
+                                            errorColor = "red";
+                                            errorFontBold = "bold";;
+                                        }
+                                        else{
+                                            errorColor = "black";
+                                            errorFontBold = "normal";
+                                        }
+                                    }
+                                    <td style="font-size:9pt; color:@errorColor; font-weight:@errorFontBold" title="SQL agent startup type">@service.SqlServerAgnetStartupType</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {
+                    imageLoc = "";
+                    var countReginal = ServiceStatuses.Where(w => w.Parent.Trim().Equals(service.RemortHostName)).Count();
+                    if (countReginal > 0)
+                    {
+                        <div class="card-group">
+                            @foreach (var region in ServiceStatuses.Where(w => w.Parent.Trim().Equals(service.RemortHostName)).OrderBy(o => o.IsRunning).ThenBy(o => o.RemortHostName))
+                            {
+                                errorCount = ServiceStatuses.Where(w => w.Parent.Equals(region.RemortHostName) && 
+                                        (!w.SqlServerStatus.Equals("Running") || !w.SqlServerAgnetStatus.Equals("Running"))).Count();
+                                if (errorCount>0)
+                                {
+                                    styleBoader = "min-width:10rem; max-width:10%; border-color:red; border-width:thick";
+                                }
+                                else
+                                {
+                                    styleBoader = "min-width:10rem;max-width:10%; border-color:black;";
+                                }
+
+                                if (region.IsRunning == 0)
+                                {
+                                    imageLoc = "/Images/" + region.RemortHostType + "_Error.jpg";
+                                    styleBoader = "min-width:10rem; max-width:10%; border-color:red;";
+                                    styleAlert = "alert-danger";
+                                }
+                                else
+                                {
+                                    imageLoc = "/Images/" + region.RemortHostType + ".jpg";
+                                    styleBoader = "min-width:10rem;max-width:10%; border-color:black;";
+                                    styleAlert = "alert-success";
+                                }
+
+                                <div class="card m-3 @styleAlert" style=@styleBoader>
+                                    <div class="card-header text-center">
+                                        <div style="font-size:10pt">@region.RemortHostDescription</div>
+                                    </div>
+                                    <div style="text-align:center">
+                                        <img class="card-img-top imageThumbnail" src=@imageLoc />
+                                    </div>
+                                    <div style="text-align:center">
+                                        <table style="width:100%">
+                                            <tr>
+                                                <th style="font-size:10pt">Sql Server</th>
+                                                <th style="font-size:10pt">Sql Agent</th>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-size:9pt" title="SQL server status">@region.SqlServerStatus</td>
+                                                <td style="font-size:9pt" title="SQL agent agent status">@region.SqlServerAgnetStatus</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="font-size:9pt" title="SQL server startup type">@region.SqlServerStartupType</td>
+                                                @{
+                                                    if (region.SqlServerAgnetStartupType != "Auto")
+                                                    {
+                                                        errorColor = "red";
+                                                        errorFontBold = "bold";
+                                                    }
+                                                    else
+                                                    {
+                                                        errorColor = "black";
+                                                        errorFontBold = "normal";
+                                                    }
+                                                }
+                                                <td style="font-size:9pt; color:@errorColor; font-weight:@errorFontBold" title="SQL agent startup type">@region.SqlServerAgnetStartupType</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+                                    @{
+                                        imageLoc = "";
+                                        styleBoader = "min-width:10rem;max-width:10%; border-color:black;";
+                                        var countTPOS = ServiceStatuses.Where(w => w.Parent.Trim().Equals(region.RemortHostName)).Count();
+                                 
+                                        if (countTPOS > 0)
+                                        {
+                                                <div>
+                                                    @foreach (var tpos in ServiceStatuses.Where(w => w.Parent.Equals(region.RemortHostName)).OrderBy(o => o.IsRunning).ThenBy(o => o.RemortHostName))
+                                                {
+                                                    if (tpos.IsRunning == 0)
+                                                    {
+                                                        imageLoc = "/Images/" + tpos.RemortHostType + "_Error.jpg";
+                                                        styleBoader = "min-width:10rem; max-width:10%; border-color:red; border-width:thick";
+                                                        styleAlert = "alert-danger";
+                                                    }
+                                                    else
+                                                    {
+                                                        imageLoc = "/Images/" + tpos.RemortHostType + ".jpg";
+                                                        styleBoader = "min-width:10rem;max-width:10%; border-color:black;";
+                                                        styleAlert = "alert-success";
+                                                    }
+
+                                                                <div class="card m-3 @styleAlert" style=@styleBoader>
+                                                                    <div class="card-header text-center">
+                                                                        <div style="font-size:9pt">@tpos.RemortHostDescription</div>
+                                                                    </div>
+                                                                    <div style="text-align:center">
+                                                                        <img class="card-img-top imageThumbnail" src=@imageLoc />
+                                                                    </div>
+                                                                    <div style="text-align:center">
+                                                                        <table style="width:100%">
+                                                                            <tr>
+                                                                                <th style="font-size:10pt">Sql Server</th>
+                                                                                <th style="font-size:10pt">Sql Agent</th>
+                                                                            </tr>
+                                                                            <tr>
+                                                                            <td style="font-size:9pt" title="SQL server status">@tpos.SqlServerStatus</td>
+                                                                            <td style="font-size:9pt" title="SQL agent agent status">@tpos.SqlServerAgnetStatus</td>
+                                                                            </tr>
+                                                                            <tr>
+                                                                            <td style="font-size:9pt" title="SQL server startup type">@tpos.SqlServerStartupType</td>
+                                                                            @{
+                                                                            if (tpos.SqlServerAgnetStartupType != "Auto")
+                                                                            {
+                                                                                errorColor = "red";
+                                                                                    errorFontBold = "bold";
+                                                                            }
+                                                                            else
+                                                                            {
+                                                                                errorColor = "black";
+                                                                                errorFontBold = "normal";
+                                                                            }
+                                                                            }
+                                                                            <td style="font-size:9pt; color:@errorColor; font-weight:@errorFontBold" title="SQL agent startup type">@tpos.SqlServerAgnetStartupType</td>
+                                                                            </tr>
+                                                                        </table>
+                                                                    </div>
+                                                                </div>
+                                                }   
+                                                        </div>
+                                        }
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+                <hr />
+            }
+            <div style="font-size:8pt; color:darkgray; text-align:center">Powered by © Tappoo Group IT 2022</div>
+        }
+    </div>
+}
+@code {
+    void Navigate()
+    {
+        UriHelper.NavigateTo("/");
+    }
+}

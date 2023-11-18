@@ -1,0 +1,73 @@
+﻿@inherits DashboardBase
+@inject NavigationManager UriHelper
+@using System.Threading;
+
+
+@if (ServiceStatuses == null)
+{
+    <div class="spinner"></div>
+}
+else
+{
+    <div style="text-align:center"><h3>Tappoo Network Monitoring Dashboard</h3></div>
+    <div style="text-align:center">
+        <div class="card card-1 col-md-6 text-md-center alert-success" style="width:50%; border-color:black;">
+            <div class="card-header text-center">
+                <div style="font-size:25pt; font-weight:bold">Nodes Active</div>
+            </div>
+            <br/>
+            @{
+                var activeCount = ServiceStatuses.Where(w => w.IsRunning.Equals(1) && w.SqlServerStatus.Equals("Running") && w.SqlServerAgnetStatus.Equals("Running")).Count();
+            }
+            <a href="#" @onclick=@Navigate style="text-decoration:none;  color:inherit;" data-toggle="tooltip" data-placement="top" data-html="true" title="Click to view detailed network status">
+                <div style="text-align:center; font-size:60pt; font-weight:bold">
+                    @activeCount
+                </div>
+            </a>
+        <br />
+        </div>
+        <br />
+        <div class="card card-1 col-md-6 text-md-center alert-danger" style="width:50%; border-color:red;">
+            <div class="card-header text-center">
+                <div style="font-size:25pt; font-weight:bold">Nodes Inactive</div>
+            </div>
+            <br />
+            @{
+                var inactiveCount = ServiceStatuses.Where(w => w.IsRunning.Equals(0) && (!w.SqlServerStatus.Equals("Running") || !w.SqlServerAgnetStatus.Equals("Running"))).Count();
+            }
+            <a href="#" @onclick=@Navigate style="text-decoration:none;  color:inherit;" data-toggle="tooltip" data-placement="top" data-html="true" title="Click to view detailed network status">
+                <div style="text-align:center; font-size:60pt; font-weight:bold">
+                    @inactiveCount
+                </div>
+                <br />
+            </a>
+        </div>
+        <br />
+        <div class="card card-1 col-md-6 text-md-center alert-warning" style="width:50%; border-color:red;" >
+            <div class="card-header text-center">
+                <div style="font-size:25pt; font-weight:bold">Nodes with Exceptions</div>
+            </div>
+            <br />
+            @{
+                //var exceptionCount = ServiceStatuses.Where(w => w.IsRunning.Equals(0) || (!w.SqlServerStartupType.Equals("Auto") || !w.SqlServerAgnetStartupType.Equals("Auto"))).Count();
+                var exceptionCount = ServiceStatuses.Where(w => w.IsRunning.Equals(1) && ((!w.SqlServerStartupType.Equals("Auto") && !w.SqlServerStartupType.Equals("")) || (!w.SqlServerAgnetStartupType.Equals("Auto") && !w.SqlServerAgnetStartupType.Equals("")) ||
+                (!w.SqlServerStartupType.Equals("Auto") && !w.SqlServerStartupType.Equals("N/A")) || (!w.SqlServerAgnetStartupType.Equals("Auto") && !w.SqlServerAgnetStartupType.Equals("N/A"))
+                )).Count();
+            }
+            <a href="#" @onclick=@Navigate style="text-decoration:none; color:inherit;" data-toggle="tooltip" data-placement="top" data-html="true" title="Click to view detailed network status">
+                <div style="text-align:center; font-size:60pt; font-weight:bold">
+                    @exceptionCount
+                </div>
+            </a>
+            <br />
+        </div>
+        <button type="button" style="width:50%" @onclick=@Navigate>View Details</button>
+    </div>
+    <div style="font-size:8pt; color:darkgray; text-align:center">Powered by © Tappoo Group IT 2022</div>
+    @code {
+        void Navigate()
+        {
+            UriHelper.NavigateTo("details");
+        }
+    }
+}
